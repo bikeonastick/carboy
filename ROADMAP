@@ -1,0 +1,16 @@
+This project is licensed under the Licensed under the Apache License, Version 2.0. 
+See LICENSE in this directory or http://www.apache.org/licenses/LICENSE-2.0 for a copy of the license.
+
+Copyright 2012 robert tomb (bikeonastick) 
+
+Carboy Plans:
+
+0.1.1
+* initial delivery to github with minimal documentation in the form of examples
+
+0.1.2
+* release to rubygems
+
+1.0
+* add carboy scaffold command to the gem to create the shell of a homebrew dev project
+* add the ability to use a git repo to deliver your formulae as well as gzips

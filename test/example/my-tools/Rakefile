@@ -1,0 +1,16 @@
+#
+# 
+# This project is licensed under the Licensed under the Apache License, Version 2.0. 
+# See LICENSE in this directory or http://www.apache.org/licenses/LICENSE-2.0 for a copy of the license.
+#
+# Copyright 2012 robert tomb (bikeonastick) 
+#
+require 'rubygems'
+require 'carboy'
+
+Carboy.new() do | c |
+	#c.name = 'my-tools'
+	c.version = '0.1'
+end
+
+task :default => [:package]
