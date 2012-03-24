@@ -11,6 +11,9 @@ Carboy Plans:
 0.1.2
 * release to rubygems
 
+0.2...
+* fix bug, i'm sure...
+
 1.0
 * add carboy scaffold command to the gem to create the shell of a homebrew dev project
 * add the ability to use a git repo to deliver your formulae as well as gzips
