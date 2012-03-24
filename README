@@ -1,0 +1,181 @@
+Copyright:
+
+Copyright 2012 robert tomb (bikeonastick) 
+
+
+License:
+
+This project is licensed under the Licensed under the Apache License, Version 2.0. See LICENSE in this directory or http://www.apache.org/licenses/LICENSE-2.0 for a copy of the license.
+
+Info:
+
+Carboy is a library that contains rake tasks you can use to deveop and deliver simple homebrew formulae. It's a homebrew tool. Carboy... get it?
+
+To do this, you need to follow some simple steps to put yourself on track for brew-vana.
+
+0) buy a mac (homebrew doesn't work on other platforms)
+1) install homebrew (and setup for development)
+2) install the carboy gem
+3) create a directory for your project
+4) create a Rakefile in your project directory 
+5) follow our recommended directory structure for the rest of your project files
+6) run the Rakefile
+7) hack, hack, hack
+8) build your brew package
+9) locally install your project via brew
+10) share
+
+0) Buy a Mac:
+
+Figure this one out for yourself
+
+1) Install Homebrew (and set up for development):
+
+1.1) Basic
+- Install Homebrew
+	/usr/bin/ruby -e "$(/usr/bin/curl -fksSL https://raw.github.com/mxcl/homebrew/master/Library/Contributions/install_homebrew.rb)"
+- Install git if it's not installed
+	brew install git
+- Get the git bits you need to work on homebrew
+	brew update 
+
+1.2) Advanced (for formulae you want to share but don't want to submit to homebrew)
+- Fork homebrew
+- Set your fork as the remote for your local homebrew's git repo
+	- cd /usr/local
+	- git remote rm origin
+	- git remote add origin git@github.com:<yourgithubuser>/homebrew.git
+- Set the real homebrew as an upstream remote for the local repo
+	- git remote add upstream https://github.com/mxcl/homebrew.git
+
+2) Install the carboy gem
+- Pull it down from github and install it yourself
+	sudo rake install
+	*note*: you can uninstall with sudo rake uninstall
+- Gem install carboy
+
+3) Create a directory for your project
+- Really, you want an example? OK, I'll use my-tools as an example.
+	mkdir my-tools
+
+4) Create a Rakefile in your project directory 
+- Create Rakefile in your directory and, at a minimum, paste in the following:
+
+		require 'rubygems'
+		require 'carboy'
+
+		Carboy.new() do | c |
+			c.version = '0.1'
+		end
+
+		task :default => [:package]
+
+5) Follow our recommended directory structure for the rest of your project files
+- Carboy understands a very simple directory structure. Follow it and things will work--don't and it won't. Simple
+	my-tools
+	|+bin
+	|+formula
+	|+lib
+	|+man
+	|-Rakefile
+
+	- bin is the directory in which you place commands you want to have end up on your path. They'll be symlinked by homebrew to /usr/local/bin, 
+		e.g., lrwxr-xr-x  1 roberttomb  admin  32 Mar 24 10:46 /usr/local/bin/mydev -> ../Cellar/my-tools/0.1/bin/mydev
+	- lib the directory for the library code on which your commands depend. 
+	- man the directory for delivering man pages to be installed with your code
+
+	With man and lib, you are required to actually deal with them in your formula, but they will be delivered in the right package structure for you to use standard homebrew commands to install them.
+
+	- formula is the directory for your... waitforit... formula!
+
+	These are the only directories supported for now. If you have more sophisticated uses for this (I'm sure someone will find a way), fork the Carboy repo and submit a pull request for it to be added.
+
+6) run the Rakefile
+- for fun, first run rake --task to see what you get for your six-or-so-line Rakefile
+
+rake --task
+rake assemble_formula       # Does md5, injects into install script, and co...
+rake assemble_prod_formula  # Does md5, injects into install script, and co...
+rake clean                  # Clean packaging and dist dirs
+rake clean_test             # Removes package from website, brew uninstall ...
+rake clean_testfiles        # Removes files without brew uninstall, cuz som...
+rake hello                  # i say hello
+rake package                # top level packaging task
+rake prep                   # Create packging and dist dirs
+rake prep_test              # Prepares files for test install: copies formu...
+rake stagefiles             # Copies files to packaging dir and injects ver...
+rake tarzip                 # Tars and gzips file
+
+- Yikes! To see more on any task, use rake -D <taskname>
+
+7) hack, hack, hack
+- Here's the content of my fake project
+	- bin/mydev
+		#!/usr/bin/ruby
+		require '@CELLAR@/@FORMULA@/@VER@/lib/mylib'
+
+		cmd = MyTools.new
+		cmd.hello
+
+	- lib/mylib.rb
+		class MyTools
+			def hello
+				puts "hello from #{__FILE__}"
+			end
+		end
+
+	- man/mydev.1
+		NAME
+				mydev -- prints a secret message
+
+		SYNOPSIS
+				mydev  
+		...
+
+	- formula/my-tools.rb
+		require 'formula'
+
+		class MyTools < Formula
+			url '@URL@/@FORMULA@-@VER@.tar.gz'
+			version '@VER@'
+			homepage '@URL@'
+			md5 '@CHECKSUM@'
+
+			def install
+				bin.install "mydev"
+				lib.install "mylib.rb"
+				man1.install "mydev.1"
+
+			end
+		end
+	
+8) build your brew package
+- There's a task for that!
+	rake 
+- If you want to actually test installing it locally (YES, YOU DO), make sure you have web sharing (the default web server) turned on and run 
+	rake prep_test
+
+
+
+FAQ
+Q: Hey, what's with all those @SOMETHINSOMETHIN@ things in all your code?
+A: The following variables are replaced when the packaging step happens:
+	- in your bin, lib, and man files
+		@CELLAR@ - location for brew's cellar, can be overridden in Rakefile, defaults to standard Homebrew locations
+		@NAME@ - name of your project, can be overridden in Rakefile defaults to directory name of project
+		@VER@ - value of version as set in your Rakefile
+		@FORMULA@ - the name of the formula (alias for name unless overridden in Rakefile)
+	- in your formula itself - test
+		@CHECKSUM@ - the value of the checksum as injected by the Rakefile
+		@FORMULA@ - the name of the formula (alias for name unless overridden in Rakefile)
+		@VER@ - value of version as set in your Rakefile
+		@URL@ - the value to test_url, which is created by the project
+	- in your formula itself - prod
+		@CHECKSUM@ - the value of the checksum as injected by the Rakefile
+		@FORMULA@ - the name of the formula (alias for name unless overridden in Rakefile)
+		@VER@ - value of version as set in your Rakefile
+		@URL@ - the value you set to prod_url in your Rakefile
+
+
+
+
